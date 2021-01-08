@@ -1,18 +1,34 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using MQTTnet;
+using MQTTnet.Client.Options;
+using Xunit;
+using Tests;
+
 
 namespace process
 {
 
-
-
+    
 
     class Program
     {
+        async Task Run()
+        {
+            var tests = new MqttTests();
+            await tests.StartMqttBrokerUsingFluentDocker();
+        }
 
+        static async Task Main(string[] args)
+        {
+            var program = new Program();
+            await program.Run();
+        }
 
-        void Run()
+        void RunBasicProcess()
         {
             using (var proc = new Process())
             {
@@ -38,14 +54,12 @@ namespace process
                     Debug.WriteLine(e);
                 }
             }
-
         }
 
-
-        static void Main(string[] args)
+        async Task RunDockerProcess()
         {
-            var program = new Program();
-            program.Run();
+
         }
+
     }
 }
