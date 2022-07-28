@@ -21,10 +21,20 @@ $modes = @(
 
 function Start-Olympus {
 
-   Push-Location $repoRoot
-      ./localdev.ps1
-   Pop-Location      
+   param (
+      [switch] $Update,
+   )
+
    get-item env:EP_*
+   Push-Location $repoRoot
+      if ($Update.IsPresent) {
+         # default is to update
+         ./localdev.ps1
+      }
+      else {
+         ./localdev.ps1 -NoUpdate
+      }
+   Pop-Location      
    docker ps               
 }
 
