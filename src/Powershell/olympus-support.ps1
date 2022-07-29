@@ -15,14 +15,15 @@ $modes = @(
    'reveos2',
    'platform-tools',
    'reveos2-tools',
-   'ocelot-gateway'
+   'ocelot-gateway',
+   'gui-shell'
 )
 
 
 function Start-Olympus {
 
    param (
-      [switch] $Update,
+      [switch] $Update
    )
 
    get-item env:EP_*
@@ -98,6 +99,9 @@ function Start-Olympus-Custom {
 }
 
 function Stop-Olympus {
+
+
+
    foreach ($mode in $modes) {
       if ($mode -eq 'platform') {
          docker compose -p "bct-enterpriseplatform" down --remove-orphans -v
@@ -106,6 +110,13 @@ function Stop-Olympus {
          docker compose -p "bct-enterpriseplatform-${mode}" down --remove-orphans -v
       }
    }
+
+   # any stragglers?
+   $stragglers = docker container ls --filter name=bct-* --format='{{.Names}}'
+   foreach ($service in $stragglers) {
+      docker compose -p "bct-enterpriseplatform-${service}" down --remove-orphans -v
+   }
+
    docker ps
 }
 
