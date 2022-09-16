@@ -9,7 +9,9 @@ $modes = @(
    'sql',
    'mqtt',
    'rabbit',
+   'rabbitmq',
    'infrastructure',
+   'prometheus',   
    'auth-tomes',
    'platform',
    'reveos2',
@@ -28,80 +30,20 @@ function Start-Olympus {
 
    get-item env:EP_*
    Push-Location $repoRoot
-      if ($Update.IsPresent) {
-         # default is to update
-         ./localdev.ps1
-      }
-      else {
-         ./localdev.ps1 -NoUpdate
-      }
-   Pop-Location      
-   docker ps               
-}
-
-
-function Start-Olympus-Custom {
-
-   param (
-      [switch] $Update,
-      [switch] $MultiDeviceTypes
-   )
-
-
-   Push-Location $repoRoot
-
-   ./set-develop-env.ps1
-   ./set-tomesprovider-env.ps1
-   ./set-aadprovider-env.ps1
-   
-   $env:EP_AUTHORITY = "http://host.docker.internal:9980"
-
-   get-item env:EP_*
-
-   ./docker-login.ps1
-
    if ($Update.IsPresent) {
-      ./compose.ps1 -mode pull
+      # default is to update
+      ./localdev.ps1
    }
-
-   foreach ($mode in $modes) {
-      if ($MultiDeviceTypes.IsPresent) {
-         if ($mode -ne "platform-tools") {
-            ./compose.ps1 -mode $mode
-         }
-      }
-      else {
-         ./compose.ps1 -mode $mode
-      }
-
-      if ($mode -eq 'sql') {
-         .\create-temptomes.ps1
-      }
+   else {
+      ./localdev.ps1 -NoUpdate
    }
-
-   # insert extra device types
-   if ($MultiDeviceTypes.IsPresent) {
-      Start-Sleep -Seconds 5
-      $epTenantId = $env:EP_TENANT_ID
-      $env:EP_TENANT_ID = "TEMP_TENANT_ID"
-      ./compose.ps1 -mode "platform-tools"
-      Start-Sleep -Seconds 5
-      docker compose -p "bct-enterpriseplatform-platform-tools" down --remove-orphans -v      
-      $env:EP_TENANT_ID = $epTenantId;
-      ./compose.ps1 -mode "platform-tools"
-   }
-
-
-
-      
    Pop-Location      
    docker ps               
 }
+
+
 
 function Stop-Olympus {
-
-
-
    foreach ($mode in $modes) {
       if ($mode -eq 'platform') {
          docker compose -p "bct-enterpriseplatform" down --remove-orphans -v
@@ -124,13 +66,20 @@ function Clear-Olympus {
 
    $containers = docker container ls --filter name=bct-* --format "{{.ID}}"
    foreach ($container in $containers) {
+      Write-Host "Container: {$container}"
       docker stop $container 
+      docker rm $container
       Write-Host $result
    }
    
-
+   Write-Host "Clearing volumes..."
    docker volume prune -f 
+   Write-Host "Clearing containers..."
    docker container prune -f 
+   Write-Host "Clearing images..."
    docker image prune -f 
+   docker ps
 }
+
+
 
