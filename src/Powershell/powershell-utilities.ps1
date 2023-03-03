@@ -129,3 +129,17 @@ function Clear-Docker {
    docker volume ls -qf dangling=true | % { docker volume rm $_ }
    docker system prune -a
 }
+
+function Clear-Images {
+
+   param(
+      [Parameter(Mandatory = $true)]      
+      $Filter = ""
+   )
+
+   $images = docker image ls --format='{{.Repository}}:{{.Tag}}' | Select-String $Filter 
+   foreach ($image in $images) {
+      Write-Output "Deleting: $image"
+      docker rmi -f $image
+   }   
+}

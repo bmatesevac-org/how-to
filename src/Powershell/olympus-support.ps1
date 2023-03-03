@@ -37,6 +37,7 @@ function Start-Olympus {
    else {
       ./localdev.ps1 -NoUpdate
    }
+   get-item env:EP_*
    Pop-Location      
    docker ps               
 }
@@ -80,6 +81,19 @@ function Clear-Olympus {
    docker image prune -f 
    docker ps
 }
+
+function Get-OlympusImageVersions {
+
+   $serviceNames = docker ps --filter name=bct-* --format='{{.Names}}'   
+
+   foreach ($serviceName in $serviceNames) {
+      $docJSON = (docker inspect bct-common-auditing-host) | ConvertFrom-Json
+      $versionValue = $docJSON.Config.Labels.BCT_PRODUCT_VERSION
+      Write-Host("$serviceName : $versionValue")      ;
+   }
+}
+
+
 
 
 
