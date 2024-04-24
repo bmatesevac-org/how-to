@@ -143,3 +143,25 @@ function Clear-Images {
       docker rmi -f $image
    }   
 }
+
+function Save-SshId {
+
+   param(
+      [Parameter(Mandatory = $true)]      
+      $Target = ""
+   )
+
+
+   $command = "type $env:USERPROFILE\.ssh\id_rsa.pub | ssh $Target 'cat >> .ssh/authorized_keys'"
+   Invoke-Expression $command
+
+}
+
+function Restart-Wsl {
+
+   tasklist /M wsl*
+   taskkill /IM wslservice.exe /F
+
+}
+
+
