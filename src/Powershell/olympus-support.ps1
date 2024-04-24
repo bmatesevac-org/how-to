@@ -32,10 +32,10 @@ function Start-Olympus {
    Push-Location $repoRoot
    if ($Update.IsPresent) {
       # default is to update
-      ./localdev.ps1
+      ./localdev.ps1 -IsHttpsEnabled
    }
    else {
-      ./localdev.ps1 -NoUpdate
+      ./localdev.ps1 -NoUpdate -IsHttpsEnabled
    }
    get-item env:EP_*
    Pop-Location      
@@ -85,15 +85,14 @@ function Clear-Olympus {
 function Get-OlympusImageVersions {
 
    $serviceNames = docker ps --filter name=bct-* --format='{{.Names}}'   
-
    foreach ($serviceName in $serviceNames) {
-      $docJSON = (docker inspect bct-common-auditing-host) | ConvertFrom-Json
-      $versionValue = $docJSON.Config.Labels.BCT_PRODUCT_VERSION
-      Write-Host("$serviceName : $versionValue")      ;
+      $command = "docker inspect $serviceName"
+      $docJSON = (Invoke-Expression $command) | ConvertFrom-Json
+      $version = $docJSON.Config.Labels.BCT_PRODUCT_VERSION
+      if ($null -ne $version) {
+         $version = $version.Split("-")[0]
+      }
+      Write-Host("$serviceName : $version")      
    }
 }
-
-
-
-
 
